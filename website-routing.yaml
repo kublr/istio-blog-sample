@@ -1,0 +1,51 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: website-gateway
+spec:
+  selector:
+    # Which pods we want to expose as Istio router
+    # This label points to the default one installed from file istio-demo.yaml
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    # Here we specify which Kubernetes service names
+    # we want to serve through this Gateway
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: website-virtual-service
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - website-gateway
+  http:
+  - route:
+    - destination:
+        host: website
+        subset: version-1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: website
+spec:
+  host: website
+  subsets:
+  - name: version-1
+    labels:
+      version: website-version-1
+  - name: version-2
+    labels:
+      version: website-version-2
+  - name: version-3
+    labels:
+      version: website-version-3
